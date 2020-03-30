@@ -7,7 +7,7 @@ TRandom3 rGen(0);
 
 //2D maxwell distribution
 TF1 maxwell("maxwell","x/[0]*TMath::Exp(-0.5*x*x/[0])",0,100);
-TF1 logNormal("lognormal","TMath::LogNormal(x,[0],0.,[1])",0,50);
+TF1 logNormal("lognormal","TMath::LogNormal(x,[0],0.,[1])",5,25);
 
 //Model a person as a particle in a 2D gas at temperature T
 Person::Person(float pInfect, float initialP, float dieP, float recoT, float temperature)
@@ -23,7 +23,7 @@ Person::Person(float pInfect, float initialP, float dieP, float recoT, float tem
   _ill = false;
   setAsIll();
   _P = pInfect;
-  logNormal.SetParameter(1,recoT);
+  //logNormal.SetParameter(1,recoT);
   //_recoveryTime = logNormal.GetRandom();
   _recoveryTime = rGen.Gaus(recoT,recoT*0.5); //randomise recovery
   if (_recoveryTime<0)
@@ -52,8 +52,9 @@ void Person::setAsIll()
       _illtime = 0;
       if (rGen.Rndm() < _dieP)
 	{
-	  logNormal.SetParameter(0,2);
-	  logNormal.SetParameter(1,6);
+	  //rough numbers 
+	  logNormal.SetParameter(0,0.2);
+	  logNormal.SetParameter(1,11);
 	  _dieTime = logNormal.GetRandom();
 	}
       else
@@ -132,7 +133,7 @@ void Person::meet(Person* p,float dt)
 	}
 
       _nMeets++;
-      //check if it  can transmit infection to p                                                                                                         
+      //check if it  can transmit infection
       if (_ill)
 	{
 	  bool pStatus=p->_ill;
@@ -261,7 +262,7 @@ long Town::nMeet()
 
 float Town::nTransmissionPerInfected()
 {
-  long nTot = 0;
+  float nTot = 0;
   int n = 0;
   for (auto& p: _population)
     if (p->_ill && p->_illtime>0. && p->_recoveryTime>0)
